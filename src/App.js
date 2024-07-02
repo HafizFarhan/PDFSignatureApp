@@ -238,7 +238,7 @@ function App() {
               className="button save-pdf-button"
               onClick={addSignatureToPdf}
             >
-              Save PDF with Signature on Page 2
+              Save PDF with Signature
             </button>
           )}
         </div>
