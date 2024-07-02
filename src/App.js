@@ -21,18 +21,25 @@ function App() {
   const [canvasBounds, setCanvasBounds] = useState(null);
   const [scale, setScale] = useState(1.5);
   const [pageHeights, setPageHeights] = useState([]);
+  const [pageWidths, setPageWidths] = useState([]);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const canvasRef = useRef(null);
   const [pdfViewerHeight, setPdfViewerHeight] = useState(0);
   const [scrolling, setScrolling] = useState(false);
   const [pdfViewerWidth, setPdfViewerWidth] = useState(0);
   const [pages, setPages] = useState([]);
+  const [pageMargin, setPageMargin] = useState(0);
 
   useEffect(() => {
     console.log("currentPageNumber updated:", currentPageNumber);
   }, [currentPageNumber]);
 
   const onFileChange = (event) => {
+    if (pageWidths[0] > 1000) {
+      setPageMargin(15);
+    } else {
+      setPageMargin(30);
+    }
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -41,7 +48,6 @@ function App() {
         setPdfFile(URL.createObjectURL(file));
         setPdfData(new Uint8Array(arrayBuffer));
 
-        // Reset state variables to initial values
         setSignature(null);
         setSignatureVisible(false);
         setSignaturePosition({ x: 0, y: 0 });
@@ -49,8 +55,9 @@ function App() {
         setShowSignaturePad(false);
         setCanvasBounds(null);
         setPageHeights([]);
-        setCurrentPageNumber(1); // Reset current page number
-        setPages([]); // Reset pages state
+        setPageWidths([]);
+        setCurrentPageNumber(1);
+        setPages([]);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -68,14 +75,13 @@ function App() {
   const handleDrag = (e, data) => {
     const { x, y } = data;
 
-    // Get the dimensions of the PDF viewer container
     const containerRect = canvasRef.current.getBoundingClientRect();
     const containerWidth = containerRect.width;
 
-    // Calculate the scaling factor based on the first page dimensions
-    const firstPageWidth = pages.length > 0 ? pages[0].width : 1; // Fallback width to avoid division by zero
+    const firstPageWidth = pages.length > 0 ? pages[0].width : 1;
     const viewerScaleX = containerWidth / firstPageWidth;
 
+    console.log("width of container : ", containerWidth);
     // Calculate the y-position relative to the accumulated heights of pages
     let accumulatedHeight = 0;
     let targetPageIndex = 0;
@@ -137,52 +143,36 @@ function App() {
 
       console.log("Adding signature to PDF...");
 
-      // Load the PDF document from the pdfData buffer
       const pdfDoc = await PDFDocument.load(pdfData);
-
-      // Embed the signature image (PNG format) into the PDF document
       const pngImage = await pdfDoc.embedPng(signature);
 
-      // Get the dimensions of the PDF viewer container
+      const targetPageIndex = currentPageNumber - 1;
+      const targetPage = pdfDoc.getPage(targetPageIndex);
+
+      const pdfPageHeight = pageHeights[targetPageIndex];
+      const pdfPageWidth = pageWidths[targetPageIndex];
+
       const containerRect = canvasRef.current.getBoundingClientRect();
       const containerWidth = containerRect.width;
 
-      const targetPageIndex = currentPageNumber - 1; // Convert to 0-based index
-      const targetPage = pdfDoc.getPage(targetPageIndex); // Get the target page
+      const page = pdfDoc.getPage(0);
+      const width = page.getWidth();
+      const height = page.getHeight();
+      console.log(`Page size: ${width} x ${height} points`);
 
-      const pageHeight = targetPage.getHeight();
-      const pageWidth = targetPage.getWidth();
-      const viewerScaleX = containerWidth / pageWidth;
-      const viewerScaleY = viewerScaleX;
+      const YforMutli = signaturePosition.y - targetPageIndex * pdfPageHeight;
 
-      const pdfViewerHeight = 612;
-      const pdfDownloadHeight = 780;
-
-      const max = 795 * (containerWidth / 1700);
-      const spare = (max - 400) / 2;
-      const percentageX = (signaturePosition.x - spare) / 400;
-
-      const percentageY = signaturePosition.y / pdfViewerHeight;
-
-      var downloadX = percentageX * 600 - 18;
-      var downloadY = (1 - percentageY) * pdfDownloadHeight;
-      if (percentageX > 0.5) {
-        downloadX = percentageX * 600 - 50;
-      }
-      // Adjust the position to account for the accumulated height of previous pages
-      let accumulatedHeight = 0;
-      for (let i = 0; i < targetPageIndex; i++) {
-        const page = pdfDoc.getPage(i);
-        accumulatedHeight +=
-          (page.getHeight() * containerWidth) / page.getWidth();
-      }
+      const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
+      const newYPos =
+        pdfPageHeight - (YforMutli + signatureSize.height * scale * 0.5);
+      const downloadY = height * (newYPos / pdfPageHeight);
 
       // Draw the signature image on the target page at the calculated position
       targetPage.drawImage(pngImage, {
         x: downloadX,
-        y: downloadY - 4,
-        width: signatureSize.width * scale * 0.6,
-        height: signatureSize.height * scale * 0.6,
+        y: downloadY + 13,
+        width: signatureSize.width * scale * 0.5,
+        height: signatureSize.height * scale * 0.5,
       });
 
       // Save the modified PDF document and create a blob for downloading
@@ -211,6 +201,7 @@ function App() {
         setPdfViewerHeight={setPdfViewerHeight}
         onCanvasRendered={setCanvasBounds}
         setPageHeights={setPageHeights}
+        setPageWidths={setPageWidths}
         setPages={setPages}
       />
     ),
@@ -221,6 +212,7 @@ function App() {
       setPdfViewerHeight,
       setCanvasBounds,
       setPageHeights,
+      setPageWidths,
       setPages,
     ]
   );
@@ -251,7 +243,16 @@ function App() {
           )}
         </div>
       </div>
-      <div ref={canvasRef} style={{ position: "relative", marginTop: "20px" }}>
+      <div
+        className="pdf-canvas"
+        ref={canvasRef}
+        style={{
+          position: "relative",
+          marginTop: "20px",
+          width: `${pageWidths[0] + 6}px`,
+          marginLeft: `${pageMargin}%`,
+        }}
+      >
         {pdfFile && memoizedPdfViewer}
         {signatureVisible && (
           <Draggable

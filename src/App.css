@@ -7,7 +7,7 @@ button {
   margin-top: 20px;
 }
 .button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   border: none;
   color: white;
   padding: 15px 32px;
@@ -27,12 +27,12 @@ button {
 }
 /* Green */
 .add-signature-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 /* Blue */
 .save-pdf-button {
-  background-color: #008CBA;
+  background-color: #008cba;
 }
 
 /* Red */
@@ -48,7 +48,7 @@ button {
   overflow: hidden;
   display: inline-block;
   cursor: pointer;
-  background-color: #005C78;
+  background-color: #005c78;
   color: #fff;
   padding: 10px 20px;
   border: none;
@@ -69,7 +69,6 @@ button {
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  
 }
 
 .custom-file-input input[type="file"] {
