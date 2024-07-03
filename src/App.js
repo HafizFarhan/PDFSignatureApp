@@ -1,7 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import PdfViewer from "./components/PdfViewer";
 import SignaturePadComponent from "./components/SignaturePadComponent";
-import { PDFDocument } from "pdf-lib";
+import TextInputComponent from "./components/TextInputComponent";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
@@ -18,17 +19,20 @@ function App() {
     height: 50,
   });
   const [signatureVisible, setSignatureVisible] = useState(false);
+  const [textVisible, setTextVisible] = useState(false);
   const [canvasBounds, setCanvasBounds] = useState(null);
   const [scale, setScale] = useState(1.5);
   const [pageHeights, setPageHeights] = useState([]);
   const [pageWidths, setPageWidths] = useState([]);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [canvasWidth, setCanvasWidth] = useState(0); // New state to store canvas width
   const canvasRef = useRef(null);
   const [pdfViewerHeight, setPdfViewerHeight] = useState(0);
   const [scrolling, setScrolling] = useState(false);
   const [pdfViewerWidth, setPdfViewerWidth] = useState(0);
   const [pages, setPages] = useState([]);
   const [pageMargin, setPageMargin] = useState(0);
+  const [textAnnotations, setTextAnnotations] = useState([]);
 
   useEffect(() => {
     console.log("currentPageNumber updated:", currentPageNumber);
@@ -50,6 +54,7 @@ function App() {
 
         setSignature(null);
         setSignatureVisible(false);
+        setTextVisible(false);
         setSignaturePosition({ x: 0, y: 0 });
         setSignatureSize({ width: 100, height: 50 });
         setShowSignaturePad(false);
@@ -58,6 +63,7 @@ function App() {
         setPageWidths([]);
         setCurrentPageNumber(1);
         setPages([]);
+        setTextAnnotations([]);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -72,6 +78,18 @@ function App() {
     setShowSignaturePad(false);
     setSignatureVisible(true);
   };
+
+  const handleAddTextAnnotation = (position) => {
+    setTextAnnotations([...textAnnotations, position]);
+    setTextVisible(true);
+  };
+
+  const handleDeleteTextAnnotation = (index) => {
+    const updatedAnnotations = [...textAnnotations];
+    updatedAnnotations.splice(index, 1);
+    setTextAnnotations(updatedAnnotations);
+  };
+
   const handleDrag = (e, data) => {
     const { x, y } = data;
 
@@ -81,7 +99,6 @@ function App() {
     const firstPageWidth = pages.length > 0 ? pages[0].width : 1;
     const viewerScaleX = containerWidth / firstPageWidth;
 
-    console.log("width of container : ", containerWidth);
     // Calculate the y-position relative to the accumulated heights of pages
     let accumulatedHeight = 0;
     let targetPageIndex = 0;
@@ -102,20 +119,8 @@ function App() {
     // Update current page number state
     setCurrentPageNumber(targetPageIndex + 1);
 
-    // Calculate the scaled coordinates relative to the PDF page
-    const page = pages[targetPageIndex];
-    const pageHeight = page.height;
-    const viewerScaleY = viewerScaleX; // Assuming uniform scaling
-
-    // Adjust the position to account for the accumulated height of previous pages
-    let offsetY = (y - accumulatedHeight) / viewerScaleX; // Adjusted Y position relative to current page
-    offsetY = pageHeight - offsetY; // Flip Y-axis to match PDF coordinates
-
     // Update signature position state
     setSignaturePosition({ x, y });
-
-    console.log("Drag position:", x, y);
-    console.log("Page index:", targetPageIndex + 1);
   };
 
   const handleResize = (e, { size }) => {
@@ -136,17 +141,22 @@ function App() {
 
   const addSignatureToPdf = async () => {
     try {
-      if (!pdfData || !signature) {
-        console.error("PDF data or signature image is missing.");
+      if (!pdfData) {
+        console.error("PDF data is missing.");
         return;
+      } else {
+        if (!signature && !textAnnotations) {
+          console.error("Must add signature or annotations");
+          return;
+        }
       }
-
       console.log("Adding signature to PDF...");
 
       const pdfDoc = await PDFDocument.load(pdfData);
-      const pngImage = await pdfDoc.embedPng(signature);
 
       const targetPageIndex = currentPageNumber - 1;
+
+      console.log("index of signature", targetPageIndex);
       const targetPage = pdfDoc.getPage(targetPageIndex);
 
       const pdfPageHeight = pageHeights[targetPageIndex];
@@ -160,20 +170,52 @@ function App() {
       const height = page.getHeight();
       console.log(`Page size: ${width} x ${height} points`);
 
-      const YforMutli = signaturePosition.y - targetPageIndex * pdfPageHeight;
+      if (signature) {
+        const pngImage = await pdfDoc.embedPng(signature);
 
-      const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
-      const newYPos =
-        pdfPageHeight - (YforMutli + signatureSize.height * scale * 0.5);
-      const downloadY = height * (newYPos / pdfPageHeight);
+        // Adjusted Y position for signature based on stored page
+        const YforMulti = signaturePosition.y - targetPageIndex * pdfPageHeight;
+        const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
+        const newYPos =
+          pdfPageHeight - (YforMulti + signatureSize.height * scale * 0.5);
+        const downloadY = height * (newYPos / pdfPageHeight);
 
-      // Draw the signature image on the target page at the calculated position
-      targetPage.drawImage(pngImage, {
-        x: downloadX,
-        y: downloadY + 13,
-        width: signatureSize.width * scale * 0.5,
-        height: signatureSize.height * scale * 0.5,
-      });
+        // Draw the signature image on the target page at the calculated position
+        targetPage.drawImage(pngImage, {
+          x: downloadX,
+          y: downloadY + 13,
+          width: signatureSize.width * scale * 0.5,
+          height: signatureSize.height * scale * 0.5,
+        });
+      }
+
+      // Add text annotations to PDF
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      for (let i = 0; i < textAnnotations.length; i++) {
+        const annotation = textAnnotations[i];
+        const { x, y, text } = annotation;
+
+        var pageNo = Math.floor(y / pageHeights[0]);
+        console.log("some division : ", pageNo);
+
+        console.log("curret page for text", pageNo);
+
+        // Adjusted Y position for text annotation based on stored page
+        const adjustedY =
+          height *
+          ((pdfPageHeight - (y - pageNo * pdfPageHeight + scale * 0.5)) /
+            pdfPageHeight);
+
+        console.log("index of text", pageNo);
+        const targetPageText = pdfDoc.getPage(pageNo);
+        targetPageText.drawText(text, {
+          x: width * (x / (pdfPageWidth / 2)),
+          y: adjustedY,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+      }
 
       // Save the modified PDF document and create a blob for downloading
       const pdfBytes = await pdfDoc.save();
@@ -233,12 +275,18 @@ function App() {
           >
             Add Signature
           </button>
-          {signatureVisible && (
+          <button
+            className="button add-annotation-button"
+            onClick={() => handleAddTextAnnotation({ x: 50, y: 50, text: "" })}
+          >
+            Add Annotation
+          </button>
+          {(signatureVisible || textVisible) && (
             <button
               className="button save-pdf-button"
               onClick={addSignatureToPdf}
             >
-              Save PDF with Signature
+              Save PDF
             </button>
           )}
         </div>
@@ -292,6 +340,19 @@ function App() {
             </div>
           </Draggable>
         )}
+
+        {textAnnotations.map((annotation, index) => (
+          <TextInputComponent
+            key={index}
+            position={{ x: annotation.x, y: annotation.y }}
+            onChange={(newPosition) =>
+              setTextAnnotations((prevState) =>
+                prevState.map((item, i) => (i === index ? newPosition : item))
+              )
+            }
+            onDelete={() => handleDeleteTextAnnotation(index)}
+          />
+        ))}
       </div>
       {showSignaturePad && (
         <div className="signature-pad-overlay">
