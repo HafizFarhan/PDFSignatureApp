@@ -161,13 +161,13 @@ function App() {
       // Update current page number state
       setCurrentPageNumber(targetPageIndex + 1);
 
-      console.log(`X ${x}`);
+      // console.log(`X ${x}`);
 
-      const temp = x;
+      // const temp = x;
       // Update signature position state with the scaled x coordinate
-      setSignaturePosition({ x: temp, y });
+      setSignaturePosition({ x, y });
 
-      console.log(`position ${signaturePosition.x}`);
+      // console.log(`position ${signaturePosition.x}`);
     }
   };
 
@@ -223,7 +223,7 @@ function App() {
       if (signature) {
         const pngImage = await pdfDoc.embedPng(signature);
 
-        console.log("ye waLI", signaturePosition.x * 10);
+        // console.log("ye waLI", signaturePosition.x * 10);
         // Adjusted Y position for signature based on stored page
         const YforMulti = signaturePosition.y - targetPageIndex * pdfPageHeight;
         const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
