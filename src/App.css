@@ -2,59 +2,19 @@
   text-align: center;
   padding: 20px;
 }
-
-button {
-  margin-top: 20px;
-}
-.button {
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  transition-duration: 0.4s;
-  cursor: pointer;
-  border-radius: 8px;
-}
-.top-buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-/* Green */
-.add-signature-button {
-  background-color: #4caf50;
-}
-
-/* Blue */
-.save-pdf-button {
-  background-color: #008cba;
-}
-
-/* Red */
-
-/* Change color on hover */
-.button:hover {
-  background-color: #45a049;
-  color: white;
-}
-
 .custom-file-input {
   position: relative;
   overflow: hidden;
   display: inline-block;
   cursor: pointer;
-  background-color: #005c78;
+  background-color: #0b57d0;
   color: #fff;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   text-align: center;
   transition: background-color 0.3s;
+  margin-right: 20px;
 }
 
 .button-container {
@@ -151,4 +111,59 @@ button {
   width: 20px;
   height: 20px;
   cursor: pointer;
+}
+
+.text-input-annotation {
+  position: absolute;
+  z-index: 10;
+}
+.resizable {
+  resize: both;
+  overflow: auto;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+}
+
+.top-buttons {
+  text-align: right;
+  margin-right: 20px; /* Adjust spacing */
+  overflow-x: auto; /* Enable horizontal scrolling for overflow */
+}
+
+.button-container {
+  display: inline-block;
+  white-space: nowrap; /* Prevent wrapping of buttons */
+}
+
+.button {
+  margin-right: 20px;
+  padding: 8px 12px;
+  background-color: #0b57d0;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 8px;
+  height: 50px;
+}
+/* Change color on hover */
+.button:hover {
+  background-color: #008cba;
+  color: white;
+}
+
+.button svg {
+  vertical-align: middle; /* Align the SVG vertically */
 }

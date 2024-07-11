@@ -25,7 +25,7 @@ function App() {
   const [pageHeights, setPageHeights] = useState([]);
   const [pageWidths, setPageWidths] = useState([]);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [canvasWidth, setCanvasWidth] = useState(0); // New state to store canvas width
+  const [canvasWidth, setCanvasWidth] = useState(0);
   const canvasRef = useRef(null);
   const [pdfViewerHeight, setPdfViewerHeight] = useState(0);
   const [scrolling, setScrolling] = useState(false);
@@ -33,12 +33,35 @@ function App() {
   const [pages, setPages] = useState([]);
   const [pageMargin, setPageMargin] = useState(0);
   const [textAnnotations, setTextAnnotations] = useState([]);
+  const [pdfDoc, setPdfDoc] = useState(null);
 
   useEffect(() => {
     console.log("currentPageNumber updated:", currentPageNumber);
   }, [currentPageNumber]);
+  // useEffect(() => {
+  //   const handleMouseMove = (e) => {
+  //     const screenWidth = window.innerWidth;
+  //     const screenHeight = window.innerHeight;
 
-  const onFileChange = (event) => {
+  //     const xPercentage = (e.clientX / screenWidth) * 100;
+  //     const yPercentage = (e.clientY / screenHeight) * 100;
+
+  //     console.log(`Current Cursor Position: X: ${e.clientX}, Y: ${e.clientY}`);
+  //     console.log(
+  //       `Percentage Covered - Width: ${xPercentage.toFixed(
+  //         2
+  //       )}%, Height: ${yPercentage.toFixed(2)}%`
+  //     );
+  //   };
+
+  //   window.addEventListener("mousemove", handleMouseMove);
+
+  //   return () => {
+  //     window.removeEventListener("mousemove", handleMouseMove);
+  //   };
+  // }, []);
+
+  const onFileChange = async (event) => {
     if (pageWidths[0] > 1000) {
       setPageMargin(15);
     } else {
@@ -47,7 +70,7 @@ function App() {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const arrayBuffer = reader.result;
         setPdfFile(URL.createObjectURL(file));
         setPdfData(new Uint8Array(arrayBuffer));
@@ -64,6 +87,9 @@ function App() {
         setCurrentPageNumber(1);
         setPages([]);
         setTextAnnotations([]);
+
+        const loadedPdfDoc = await PDFDocument.load(arrayBuffer);
+        setPdfDoc(loadedPdfDoc);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -116,11 +142,33 @@ function App() {
       accumulatedHeight += viewerPageHeight;
     }
 
-    // Update current page number state
-    setCurrentPageNumber(targetPageIndex + 1);
+    // Access the pre-loaded PDF document from state
+    if (pdfDoc) {
+      const page = pdfDoc.getPage(0);
+      const width = page.getWidth();
+      const pdfPageHeight = pageHeights[0];
+      const pdfPageWidth = pageWidths[0];
 
-    // Update signature position state
-    setSignaturePosition({ x, y });
+      // Calculate the new x coordinate by scaling it based on the width of the PDF page and the container width
+      // const temp = (pdfPageWidth / 2) * (x / width);
+
+      // console.log(`Container Width: ${containerWidth}`);
+      // console.log(`PDF Page Width: ${width}`);
+      // console.log(`Original X: ${x}`);
+      // console.log("percentage curser ", x / width);
+      // console.log("x:", x, "temp:", temp); // Debugging line to check values
+
+      // Update current page number state
+      setCurrentPageNumber(targetPageIndex + 1);
+
+      console.log(`X ${x}`);
+
+      const temp = x;
+      // Update signature position state with the scaled x coordinate
+      setSignaturePosition({ x: temp, y });
+
+      console.log(`position ${signaturePosition.x}`);
+    }
   };
 
   const handleResize = (e, { size }) => {
@@ -150,6 +198,8 @@ function App() {
           return;
         }
       }
+
+      // console.log(signaturePosition.x * 10);
       console.log("Adding signature to PDF...");
 
       const pdfDoc = await PDFDocument.load(pdfData);
@@ -173,6 +223,7 @@ function App() {
       if (signature) {
         const pngImage = await pdfDoc.embedPng(signature);
 
+        console.log("ye waLI", signaturePosition.x * 10);
         // Adjusted Y position for signature based on stored page
         const YforMulti = signaturePosition.y - targetPageIndex * pdfPageHeight;
         const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
@@ -183,7 +234,7 @@ function App() {
         // Draw the signature image on the target page at the calculated position
         targetPage.drawImage(pngImage, {
           x: downloadX,
-          y: downloadY + 13,
+          y: downloadY + signatureSize.height / 2.5,
           width: signatureSize.width * scale * 0.5,
           height: signatureSize.height * scale * 0.5,
         });
@@ -195,6 +246,7 @@ function App() {
         const annotation = textAnnotations[i];
         const { x, y, text } = annotation;
 
+        console.log("date index : ", x, " ", y);
         var pageNo = Math.floor(y / pageHeights[0]);
         console.log("some division : ", pageNo);
 
@@ -261,34 +313,54 @@ function App() {
 
   return (
     <div className="App">
-      <div className="top-buttons">
-        <div className="button-container">
-          <input
-            className="custom-file-input"
-            type="file"
-            onChange={onFileChange}
-            accept="application/pdf"
-          />
-          <button
-            className="button add-signature-button"
-            onClick={() => setShowSignaturePad(true)}
-          >
-            Add Signature
-          </button>
-          <button
-            className="button add-annotation-button"
-            onClick={() => handleAddTextAnnotation({ x: 50, y: 50, text: "" })}
-          >
-            Add Annotation
-          </button>
-          {(signatureVisible || textVisible) && (
+      <div className="navbar">
+        <div className="top-buttons">
+          <div className="button-container">
+            <input
+              className="custom-file-input"
+              type="file"
+              onChange={onFileChange}
+              accept="application/pdf"
+            />
             <button
-              className="button save-pdf-button"
-              onClick={addSignatureToPdf}
+              className="button add-signature-button"
+              onClick={() => setShowSignaturePad(true)}
             >
-              Save PDF
+              Add Signature
             </button>
-          )}
+            <button
+              className="button add-annotation-button"
+              onClick={() =>
+                handleAddTextAnnotation({ x: 50, y: 50, text: "" })
+              }
+            >
+              Add Date
+            </button>
+            {(signatureVisible || textVisible) && (
+              <button
+                className="button save-pdf-button"
+                onClick={addSignatureToPdf}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-save"
+                >
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 3h5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span style={{ marginLeft: "5px" }}>Save PDF</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
       <div
@@ -301,10 +373,11 @@ function App() {
           marginLeft: `${pageMargin}%`,
         }}
       >
+        {/* Your PDF viewer and annotations rendering */}
         {pdfFile && memoizedPdfViewer}
         {signatureVisible && (
           <Draggable
-            position={signaturePosition}
+            defaultPosition={signaturePosition}
             onDrag={handleDrag}
             onStop={handleDrag}
             bounds="parent"
@@ -340,7 +413,7 @@ function App() {
             </div>
           </Draggable>
         )}
-
+        {/* Render text annotations */}
         {textAnnotations.map((annotation, index) => (
           <TextInputComponent
             key={index}
@@ -354,6 +427,7 @@ function App() {
           />
         ))}
       </div>
+      {/* Signature pad overlay */}
       {showSignaturePad && (
         <div className="signature-pad-overlay">
           <SignaturePadComponent
