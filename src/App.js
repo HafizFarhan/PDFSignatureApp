@@ -121,7 +121,7 @@ function App() {
 
     const containerRect = canvasRef.current.getBoundingClientRect();
     const containerWidth = containerRect.width;
-
+    const containerHeight = containerRect.height;
     const firstPageWidth = pages.length > 0 ? pages[0].width : 1;
     const viewerScaleX = containerWidth / firstPageWidth;
 
@@ -131,7 +131,7 @@ function App() {
 
     // Find the target page index based on current drag position
     for (let i = 0; i < pageHeights.length; i++) {
-      const viewerPageHeight = pageHeights[i];
+      const viewerPageHeight = pageHeights[i] * 0.182 * 10;
 
       // Check if the current y-position is within this page's accumulated height
       if (y < accumulatedHeight + viewerPageHeight) {
@@ -146,14 +146,15 @@ function App() {
     if (pdfDoc) {
       const page = pdfDoc.getPage(0);
       const width = page.getWidth();
+      const height = page.getHeight();
       const pdfPageHeight = pageHeights[0];
       const pdfPageWidth = pageWidths[0];
 
       // Calculate the new x coordinate by scaling it based on the width of the PDF page and the container width
       // const temp = (pdfPageWidth / 2) * (x / width);
 
-      // console.log(`Container Width: ${containerWidth}`);
-      // console.log(`PDF Page Width: ${width}`);
+      console.log(`Container height: ${containerHeight}`);
+      console.log(`PDF Page Height: ${height}`);
       // console.log(`Original X: ${x}`);
       // console.log("percentage curser ", x / width);
       // console.log("x:", x, "temp:", temp); // Debugging line to check values
@@ -165,9 +166,9 @@ function App() {
 
       // const temp = x;
       // Update signature position state with the scaled x coordinate
-      setSignaturePosition({ x, y });
+      setSignaturePosition({ x: x / 10, y: y / 10 });
 
-      // console.log(`position ${signaturePosition.x}`);
+      console.log(`position ${signaturePosition.y}`);
     }
   };
 
@@ -223,18 +224,31 @@ function App() {
       if (signature) {
         const pngImage = await pdfDoc.embedPng(signature);
 
-        // console.log("ye waLI", signaturePosition.x * 10);
+        console.log("pdf page height ", pdfPageHeight);
+
         // Adjusted Y position for signature based on stored page
-        const YforMulti = signaturePosition.y - targetPageIndex * pdfPageHeight;
-        const downloadX = width * (signaturePosition.x / (pdfPageWidth / 2));
-        const newYPos =
-          pdfPageHeight - (YforMulti + signatureSize.height * scale * 0.5);
-        const downloadY = height * (newYPos / pdfPageHeight);
+        const YforMulti =
+          signaturePosition.y - targetPageIndex * (pdfPageHeight * 0.182);
+
+        // Calculate X position for the signature in the PDF
+        const scaledSignatureX = signaturePosition.x * 10;
+        const downloadX = width * (scaledSignatureX / pdfPageWidth);
+        const finalX = downloadX * 1.08;
+
+        // Calculate Y position for the signature in the PDF
+        const normalizedY = YforMulti / (pdfPageHeight * 0.182);
+        const downloadY = height * normalizedY;
+        const invertedY = height - downloadY;
+        const signatureHeightScaled = signatureSize.height * scale * 0.5;
+        const finalY = invertedY - signatureHeightScaled;
+
+        console.log("finalX", finalX);
+        console.log("finalY", finalY);
 
         // Draw the signature image on the target page at the calculated position
         targetPage.drawImage(pngImage, {
-          x: downloadX,
-          y: downloadY + signatureSize.height / 2.5,
+          x: finalX * 1.01,
+          y: finalY * 1.05,
           width: signatureSize.width * scale * 0.5,
           height: signatureSize.height * scale * 0.5,
         });

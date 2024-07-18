@@ -28,7 +28,6 @@ const TextInputComponent = ({
 
   const handleDrag = (e, ui) => {
     var { x, y } = ui;
-    x = x ;
     console.log("curser position : ", x, " ", y);
     if (!isEditable) {
       // Update the position state with the new cursor position
