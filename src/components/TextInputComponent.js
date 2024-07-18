@@ -11,13 +11,14 @@ const TextInputComponent = ({
   const [text, setText] = useState(defaultText);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
+  const [scaledPosition, setScaledPosition] = useState(position);
 
   const inputRef = useRef(null); // Ref for focusing the input
 
   const handleInputChange = (e) => {
     setText(e.target.value);
     if (onChange) {
-      onChange({ ...position, text: e.target.value });
+      onChange({ ...scaledPosition, text: e.target.value });
     }
   };
 
@@ -27,11 +28,13 @@ const TextInputComponent = ({
   };
 
   const handleDrag = (e, ui) => {
-    var { x, y } = ui;
-    console.log("curser position : ", x, " ", y);
+    const { deltaX, deltaY } = ui;
     if (!isEditable) {
-      // Update the position state with the new cursor position
-      onChange({ x, y, text });
+      const newX = scaledPosition.x + deltaX / 2;
+      const newY = scaledPosition.y + deltaY / 2;
+
+      setScaledPosition({ x: newX, y: newY });
+      onChange({ x: newX, y: newY, text });
     }
   };
 
@@ -49,7 +52,7 @@ const TextInputComponent = ({
 
   return (
     <Draggable
-      position={{ x: position.x, y: position.y }}
+      position={{ x: scaledPosition.x, y: scaledPosition.y }}
       onDrag={handleDrag}
       onStop={handleDragStop}
       bounds="parent"
@@ -58,8 +61,8 @@ const TextInputComponent = ({
         className="text-input-annotation"
         style={{
           position: "absolute",
-          left: position.x,
-          top: position.y,
+          left: scaledPosition.x,
+          top: scaledPosition.y,
           zIndex: 10,
           cursor: isDragging ? "move" : isEditable ? "text" : "move",
         }}

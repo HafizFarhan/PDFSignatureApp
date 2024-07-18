@@ -35,32 +35,16 @@ function App() {
   const [textAnnotations, setTextAnnotations] = useState([]);
   const [pdfDoc, setPdfDoc] = useState(null);
 
+  const [pdfPage, setPdfPage] = useState(null);
+
+  // Handler to set the PDF page when the document is loaded
+  const onDocumentLoadSuccess = (pdf) => {
+    setPdfPage(pdf._pdfInfo);
+  };
+
   useEffect(() => {
     console.log("currentPageNumber updated:", currentPageNumber);
   }, [currentPageNumber]);
-  // useEffect(() => {
-  //   const handleMouseMove = (e) => {
-  //     const screenWidth = window.innerWidth;
-  //     const screenHeight = window.innerHeight;
-
-  //     const xPercentage = (e.clientX / screenWidth) * 100;
-  //     const yPercentage = (e.clientY / screenHeight) * 100;
-
-  //     console.log(`Current Cursor Position: X: ${e.clientX}, Y: ${e.clientY}`);
-  //     console.log(
-  //       `Percentage Covered - Width: ${xPercentage.toFixed(
-  //         2
-  //       )}%, Height: ${yPercentage.toFixed(2)}%`
-  //     );
-  //   };
-
-  //   window.addEventListener("mousemove", handleMouseMove);
-
-  //   return () => {
-  //     window.removeEventListener("mousemove", handleMouseMove);
-  //   };
-  // }, []);
-
   const onFileChange = async (event) => {
     if (pageWidths[0] > 1000) {
       setPageMargin(15);
@@ -262,8 +246,6 @@ function App() {
 
         console.log("date index : ", x, " ", y);
         var pageNo = Math.floor(y / pageHeights[0]);
-        console.log("some division : ", pageNo);
-
         console.log("curret page for text", pageNo);
 
         // Adjusted Y position for text annotation based on stored page
