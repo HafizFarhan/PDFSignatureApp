@@ -6,6 +6,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
+import { Rnd } from "react-rnd";
 import "./App.css";
 import logo from "./logo2.svg";
 
@@ -237,7 +238,7 @@ function App() {
         // Calculate X position for the signature in the PDF
         const scaledSignatureX = signaturePosition.x * 10;
         const downloadX = width * (scaledSignatureX / pdfPageWidth);
-        const finalX = downloadX * 1.08;
+        const finalX = downloadX;
 
         // Calculate Y position for the signature in the PDF
         const normalizedY = YforMulti / (pdfPageHeight * 0.182);
@@ -251,8 +252,8 @@ function App() {
 
         // Draw the signature image on the target page at the calculated position
         targetPage.drawImage(pngImage, {
-          x: finalX * 1.01,
-          y: finalY * 1.06,
+          x: finalX,
+          y: finalY * 1.01,
           width: signatureSize.width * scale * 0.5,
           height: signatureSize.height * scale * 0.5,
         });
@@ -380,70 +381,70 @@ function App() {
         {/* Your PDF viewer and annotations rendering */}
         {pdfFile && memoizedPdfViewer}
         {signatureVisible && (
-          <Draggable
-            defaultPosition={signaturePosition}
-            onDrag={handleDrag}
-            onStop={handleDrag}
-            bounds="parent"
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: signaturePosition.x,
-                top: signaturePosition.y,
-                cursor: "move",
-                zIndex: 100,
-              }}
-            >
-              <ResizableBox
-                width={signatureSize.width}
-                height={signatureSize.height}
-                minConstraints={[50, 25]}
-                maxConstraints={[300, 150]}
-                onResize={handleResize}
-                resizeHandles={["s", "w", "e", "n", "sw", "nw", "se", "ne"]}
-                style={{ position: "relative" }}
-              >
-                <img
-                  src={signature}
-                  alt="Signature"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    cursor: "move",
-                  }}
-                />
-                 <div
-                    style={{
-                      position: "absolute",
-                      top: -20,
-                      right: -20,
-                      cursor: "pointer",
-                      backgroundColor: "rgba(255, 255, 255, 0.7)",
-                      borderRadius: "50%",
-                      padding: "5px",
-                    }}
-                    onClick={removeSignature}
-                  >
-                    
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      viewBox="0 0 24 24"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </div>
-              </ResizableBox>
-            </div>
-          </Draggable>
+           <Rnd
+           default={{
+             x: signaturePosition.x,
+             y: signaturePosition.y,
+             width: signatureSize.width,
+             height: signatureSize.height,
+           }}
+           minWidth={50}
+           minHeight={25}
+           maxWidth={300}
+           maxHeight={150}
+           bounds="parent"
+           onDragStop={(e, data) => {
+             setSignaturePosition({ x: data.x, y: data.y });
+             handleDrag(e, data); // You can pass additional parameters if needed
+           }}
+           onResizeStop={(e, direction, ref, delta, position) => {
+             setSignatureSize({
+               width: ref.offsetWidth,
+               height: ref.offsetHeight,
+             });
+             setSignaturePosition(position); // Update position after resize
+             handleResize(e, { size: { width: ref.offsetWidth, height: ref.offsetHeight } });
+           }}
+           className="signature-rnd"
+           
+         >
+           <img
+             src={signature}
+             alt="Signature"
+             style={{
+               width: "100%",
+               height: "100%",
+               cursor: "move",
+             }}
+           />
+           <div
+             style={{
+               position: "absolute",
+               top: -25,
+               right: -25,
+               cursor: "pointer",
+               backgroundColor: "rgba(255, 255, 255, 0.7)",
+               borderRadius: "50%",
+               padding: "5px",
+             }}
+             onClick={removeSignature}
+           >
+             <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="20"
+               height="20"
+               fill="none"
+               stroke="currentColor"
+               strokeWidth="3"
+               strokeLinecap="round"
+               strokeLinejoin="round"
+               viewBox="0 0 24 24"
+             >
+               <line x1="18" y1="6" x2="6" y2="18"></line>
+               <line x1="6" y1="6" x2="18" y2="18"></line>
+             </svg>
+           </div>
+         </Rnd>
         )}
         {/* Render text annotations */}
         {textAnnotations.map((annotation, index) => (
