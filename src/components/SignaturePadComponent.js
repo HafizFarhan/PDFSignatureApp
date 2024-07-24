@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import SignaturePad from "signature_pad";
+import '../App.css'
 
 const SignaturePadComponent = ({ onEnd, onClear, onCreate, onClose }) => {
   const canvasRef = useRef(null);
@@ -35,11 +36,11 @@ const SignaturePadComponent = ({ onEnd, onClear, onCreate, onClose }) => {
     <div className="signature-pad-container">
       <canvas
         ref={canvasRef}
-        style={{ border: "1px solid #000", width: "100%", height: "200px" }}
+        style={{ border: "1px solid #000", width: "100%", height: "200px"  }}
       ></canvas>
       <div className="signature-pad-controls">
         <button onClick={handleClear}>Clear</button>
-        <button onClick={handleCreate}>Create</button>
+        <button onClick={handleCreate}>Sign</button>
         <button onClick={onClose}>Close</button>
       </div>
     </div>

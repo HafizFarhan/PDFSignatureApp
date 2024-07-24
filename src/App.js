@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import PdfViewer from "./components/PdfViewer";
 import SignaturePadComponent from "./components/SignaturePadComponent";
 import TextInputComponent from "./components/TextInputComponent";
@@ -7,6 +7,7 @@ import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
 import "./App.css";
+import logo from "./logo2.svg";
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
@@ -42,6 +43,24 @@ function App() {
     setPdfPage(pdf._pdfInfo);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Delete") {
+        removeSignature();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [signatureVisible]);
+
+  const removeSignature = useCallback(() => {
+    setSignature(null);
+    setSignatureVisible(false);
+  }, []);
   useEffect(() => {
     console.log("currentPageNumber updated:", currentPageNumber);
   }, [currentPageNumber]);
@@ -160,10 +179,11 @@ function App() {
     setSignatureSize({ width: size.width, height: size.height });
   };
 
-  const deleteSignature = () => {
-    setSignature(null);
-    setSignatureVisible(false);
-  };
+ 
+  // const removeSignature = () => {
+  //   setSignature(null);
+  //   setSignatureVisible(false);
+  // };
 
   const scrollPageDown = () => {
     window.scrollBy(0, 50);
@@ -232,7 +252,7 @@ function App() {
         // Draw the signature image on the target page at the calculated position
         targetPage.drawImage(pngImage, {
           x: finalX * 1.01,
-          y: finalY * 1.05,
+          y: finalY * 1.06,
           width: signatureSize.width * scale * 0.5,
           height: signatureSize.height * scale * 0.5,
         });
@@ -280,7 +300,7 @@ function App() {
       console.error("Error adding signature to PDF:", error);
     }
   };
-
+  
   // Memoize PdfViewer component to prevent unnecessary re-renders
   const memoizedPdfViewer = useMemo(
     () => (
@@ -310,26 +330,14 @@ function App() {
   return (
     <div className="App">
       <div className="navbar">
+        <div><img src={logo}></img></div>
+        
         <div className="top-buttons">
-          <div className="button-container">
-            <input
-              className="custom-file-input"
-              type="file"
-              onChange={onFileChange}
-              accept="application/pdf"
-            />
-            <button
-              className="button add-signature-button"
-              onClick={() => setShowSignaturePad(true)}
-            >
+            <input className="custom-file-input" type="file" onChange={onFileChange} accept="application/pdf"/>
+            <button   className="button add-signature-button" onClick={() => setShowSignaturePad(true)} >
               Add Signature
             </button>
-            <button
-              className="button add-annotation-button"
-              onClick={() =>
-                handleAddTextAnnotation({ x: 50, y: 50, text: "" })
-              }
-            >
+            <button className="button add-annotation-button" onClick={() =>  handleAddTextAnnotation({ x: 50, y: 50, text: "" }) } >
               Add Date
             </button>
             {(signatureVisible || textVisible) && (
@@ -339,8 +347,8 @@ function App() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="20"
+                  width="20"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -357,7 +365,7 @@ function App() {
               </button>
             )}
           </div>
-        </div>
+        
       </div>
       <div
         className="pdf-canvas"
@@ -405,6 +413,34 @@ function App() {
                     cursor: "move",
                   }}
                 />
+                 <div
+                    style={{
+                      position: "absolute",
+                      top: -20,
+                      right: -20,
+                      cursor: "pointer",
+                      backgroundColor: "rgba(255, 255, 255, 0.7)",
+                      borderRadius: "50%",
+                      padding: "5px",
+                    }}
+                    onClick={removeSignature}
+                  >
+                    
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </div>
               </ResizableBox>
             </div>
           </Draggable>

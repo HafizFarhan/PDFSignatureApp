@@ -1,6 +1,12 @@
+*{
+  margin: 0;
+  padding: 0;
+}
 .App {
   text-align: center;
   padding: 20px;
+  margin: 0;
+  padding: 0;
 }
 .custom-file-input {
   position: relative;
@@ -69,11 +75,25 @@
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+  
 }
 
 .signature-pad-controls button {
   padding: 5px 10px;
   margin: 0 5px;
+  margin-right: 20px;
+  padding: 10px 20px;
+  background-color: #0b57d0;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 8px;
 }
 
 #pdf-container {
@@ -127,24 +147,27 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  background-color: #333;
-  color: white;
+  width: 100vmax;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+}
+.navbar a{
+  color: black;
+  position: absolute;
+ 
 }
 
 .top-buttons {
   text-align: right;
   margin-right: 20px; /* Adjust spacing */
   overflow-x: auto; /* Enable horizontal scrolling for overflow */
-}
-
-.button-container {
   display: inline-block;
-  white-space: nowrap; /* Prevent wrapping of buttons */
+  white-space: nowrap; 
 }
 
 .button {
   margin-right: 20px;
-  padding: 8px 12px;
+  padding: 14px 20px;
   background-color: #0b57d0;
   color: white;
   border: none;
@@ -152,12 +175,12 @@
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
+  font-size: 14px;
   transition-duration: 0.4s;
   cursor: pointer;
   border-radius: 8px;
-  height: 50px;
 }
+
 /* Change color on hover */
 .button:hover {
   background-color: #008cba;
