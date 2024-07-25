@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
 import Draggable from "react-draggable";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format, parse } from "date-fns";
 import "../App.css";
 
 const TextInputComponent = ({
@@ -8,18 +11,18 @@ const TextInputComponent = ({
   onDelete,
   defaultText = "",
 }) => {
-  const [text, setText] = useState(defaultText);
+  // Parse the defaultText to a Date object
+  const initialDate = defaultText ? parse(defaultText, "dd-MM-yyyy", new Date()) : null;
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [scaledPosition, setScaledPosition] = useState(position);
 
-  const inputRef = useRef(null); // Ref for focusing the input
+  const inputRef = useRef(null);
 
-  const handleInputChange = (e) => {
-    const inputDate = e.target.value; 
-    const [year, month, day] = inputDate.split('-');
-    const formattedDate = `${day}-${month}-${year}`; 
-    setText(formattedDate);
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    const formattedDate = format(date, "dd-MM-yyyy");
     if (onChange) {
       onChange({ ...scaledPosition, text: formattedDate });
     }
@@ -37,7 +40,10 @@ const TextInputComponent = ({
       const newY = scaledPosition.y + deltaY / 2;
 
       setScaledPosition({ x: newX, y: newY });
-      onChange({ x: newX, y: newY, text });
+      if (selectedDate) {
+        const formattedDate = format(selectedDate, "dd-MM-yyyy");
+        onChange({ x: newX, y: newY, text: formattedDate });
+      }
     }
   };
 
@@ -50,14 +56,7 @@ const TextInputComponent = ({
   };
 
   const handleInputBlur = () => {
-    setIsEditable(false); // Set editable to false when input blurs
-  };
-  const getInputValue = () => {
-    if (text) {
-      const [day, month, year] = text.split('-');
-      return `${year}-${month}-${day}`;
-    }
-    return '';
+    setIsEditable(false);
   };
 
   return (
@@ -77,21 +76,26 @@ const TextInputComponent = ({
           cursor: isDragging ? "move" : isEditable ? "text" : "move",
         }}
       >
-        <input
+        <DatePicker
           ref={inputRef}
-          type="date"
-          value={getInputValue()}
-          onChange={handleInputChange}
+          selected={selectedDate}
+          onChange={handleDateChange}
+          dateFormat="dd-MM-yyyy"
           onDoubleClick={handleDoubleClick}
           onBlur={handleInputBlur}
-          style={{
-            width: "200px",
-            height: "35px",
-            cursor: isEditable ? "text" : "move",
-            border: isEditable ? "1px solid #ccc" : "none",
-            padding: "5px",
-            pointerEvents: isEditable ? "auto" : "none",
-          }}
+          placeholderText="dd-mm-yyyy"
+          customInput={
+            <input
+              style={{
+                width: "200px",
+                height: "35px",
+                cursor: isEditable ? "text" : "move",
+                border: isEditable ? "1px solid #ccc" : "none",
+                padding: "5px",
+                pointerEvents: isEditable ? "auto" : "none",
+              }}
+            />
+          }
         />
 
         <button

@@ -10,6 +10,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "date-fns": "^3.6.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "pspdfkit": "^2024.3.2",
