@@ -16,9 +16,12 @@ const TextInputComponent = ({
   const inputRef = useRef(null); // Ref for focusing the input
 
   const handleInputChange = (e) => {
-    setText(e.target.value);
+    const inputDate = e.target.value; 
+    const [year, month, day] = inputDate.split('-');
+    const formattedDate = `${day}-${month}-${year}`; 
+    setText(formattedDate);
     if (onChange) {
-      onChange({ ...scaledPosition, text: e.target.value });
+      onChange({ ...scaledPosition, text: formattedDate });
     }
   };
 
@@ -49,6 +52,13 @@ const TextInputComponent = ({
   const handleInputBlur = () => {
     setIsEditable(false); // Set editable to false when input blurs
   };
+  const getInputValue = () => {
+    if (text) {
+      const [day, month, year] = text.split('-');
+      return `${year}-${month}-${day}`;
+    }
+    return '';
+  };
 
   return (
     <Draggable
@@ -70,7 +80,7 @@ const TextInputComponent = ({
         <input
           ref={inputRef}
           type="date"
-          value={text}
+          value={getInputValue()}
           onChange={handleInputChange}
           onDoubleClick={handleDoubleClick}
           onBlur={handleInputBlur}
