@@ -147,7 +147,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  width: 100vmax;
+  width: 100v;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 0;
 }
