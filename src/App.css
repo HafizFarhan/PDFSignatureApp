@@ -156,6 +156,9 @@
   position: absolute;
  
 }
+.logo{
+  margin-left: 1.3rem;
+}
 
 .top-buttons {
   text-align: right;

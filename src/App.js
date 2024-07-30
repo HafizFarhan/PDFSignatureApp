@@ -3,8 +3,6 @@ import PdfViewer from "./components/PdfViewer";
 import SignaturePadComponent from "./components/SignaturePadComponent";
 import TextInputComponent from "./components/TextInputComponent";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import Draggable from "react-draggable";
-import { ResizableBox } from "react-resizable";
 import "react-resizable/css/styles.css";
 import { Rnd } from "react-rnd";
 import "./App.css";
@@ -27,22 +25,14 @@ function App() {
   const [pageHeights, setPageHeights] = useState([]);
   const [pageWidths, setPageWidths] = useState([]);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [canvasWidth, setCanvasWidth] = useState(0);
   const canvasRef = useRef(null);
   const [pdfViewerHeight, setPdfViewerHeight] = useState(0);
-  const [scrolling, setScrolling] = useState(false);
+  // const [scrolling, setScrolling] = useState(false);
   const [pdfViewerWidth, setPdfViewerWidth] = useState(0);
   const [pages, setPages] = useState([]);
   const [pageMargin, setPageMargin] = useState(0);
   const [textAnnotations, setTextAnnotations] = useState([]);
   const [pdfDoc, setPdfDoc] = useState(null);
-
-  const [pdfPage, setPdfPage] = useState(null);
-
-  // Handler to set the PDF page when the document is loaded
-  const onDocumentLoadSuccess = (pdf) => {
-    setPdfPage(pdf._pdfInfo);
-  };
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -180,18 +170,7 @@ function App() {
     setSignatureSize({ width: size.width, height: size.height });
   };
 
- 
-  // const removeSignature = () => {
-  //   setSignature(null);
-  //   setSignatureVisible(false);
-  // };
-
-  const scrollPageDown = () => {
-    window.scrollBy(0, 50);
-    setTimeout(() => {
-      setScrolling(false);
-    }, 100);
-  };
+  
 
   const addSignatureToPdf = async () => {
     try {
@@ -331,7 +310,7 @@ function App() {
   return (
     <div className="App">
       <div className="navbar">
-        <div><img src={logo}></img></div>
+        <div><img className="logo" src={logo} alt="INBOXACCEL"></img></div>
         
         <div className="top-buttons">
             <input className="custom-file-input" type="file" onChange={onFileChange} accept="application/pdf"/>
@@ -395,14 +374,14 @@ function App() {
            bounds="parent"
            onDragStop={(e, data) => {
              setSignaturePosition({ x: data.x, y: data.y });
-             handleDrag(e, data); // You can pass additional parameters if needed
+             handleDrag(e, data); 
            }}
            onResizeStop={(e, direction, ref, delta, position) => {
              setSignatureSize({
                width: ref.offsetWidth,
                height: ref.offsetHeight,
              });
-             setSignaturePosition(position); // Update position after resize
+             setSignaturePosition(position); 
              handleResize(e, { size: { width: ref.offsetWidth, height: ref.offsetHeight } });
            }}
            className="signature-rnd"
