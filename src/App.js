@@ -7,7 +7,7 @@ import "react-resizable/css/styles.css";
 import { Rnd } from "react-rnd";
 import "./App.css";
 import logo from "./logo2.svg";
-
+import debounce from "lodash/debounce";
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfData, setPdfData] = useState(null);
@@ -109,62 +109,28 @@ function App() {
     updatedAnnotations.splice(index, 1);
     setTextAnnotations(updatedAnnotations);
   };
-
-  const handleDrag = (e, data) => {
+  const handleDrag = useCallback(debounce((e, data) => {
     const { x, y } = data;
-
-    const containerRect = canvasRef.current.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    const containerHeight = containerRect.height;
-    const firstPageWidth = pages.length > 0 ? pages[0].width : 1;
-    const viewerScaleX = containerWidth / firstPageWidth;
-
-    // Calculate the y-position relative to the accumulated heights of pages
-    let accumulatedHeight = 0;
-    let targetPageIndex = 0;
-
-    // Find the target page index based on current drag position
-    for (let i = 0; i < pageHeights.length; i++) {
-      const viewerPageHeight = pageHeights[i] * 0.182 * 10;
-
-      // Check if the current y-position is within this page's accumulated height
-      if (y < accumulatedHeight + viewerPageHeight) {
-        targetPageIndex = i; // Page index where signature is being dragged
-        break;
+  
+    requestAnimationFrame(() => {
+      if (pdfDoc) {
+        const page = pdfDoc.getPage(0);
+        // const width = page.getWidth();
+        // const height = page.getHeight();
+  
+        const targetPageIndex = pageHeights.findIndex((pageHeight, index) => {
+          const accumulatedHeight = pageHeights
+            .slice(0, index)
+            .reduce((sum, height) => sum + height * 0.182 * 10, 0);
+          return y < accumulatedHeight + pageHeight * 0.182 * 10;
+        });
+  
+        setCurrentPageNumber(targetPageIndex + 1);
+        setSignaturePosition({ x: x / 10, y: y / 10 });
       }
+    });
+  }, 100),[pdfDoc, pageHeights]);
 
-      accumulatedHeight += viewerPageHeight;
-    }
-
-    // Access the pre-loaded PDF document from state
-    if (pdfDoc) {
-      const page = pdfDoc.getPage(0);
-      const width = page.getWidth();
-      const height = page.getHeight();
-      const pdfPageHeight = pageHeights[0];
-      const pdfPageWidth = pageWidths[0];
-
-      // Calculate the new x coordinate by scaling it based on the width of the PDF page and the container width
-      // const temp = (pdfPageWidth / 2) * (x / width);
-
-      console.log(`Container height: ${containerHeight}`);
-      console.log(`PDF Page Height: ${height}`);
-      // console.log(`Original X: ${x}`);
-      // console.log("percentage curser ", x / width);
-      // console.log("x:", x, "temp:", temp); // Debugging line to check values
-
-      // Update current page number state
-      setCurrentPageNumber(targetPageIndex + 1);
-
-      // console.log(`X ${x}`);
-
-      // const temp = x;
-      // Update signature position state with the scaled x coordinate
-      setSignaturePosition({ x: x / 10, y: y / 10 });
-
-      console.log(`position ${signaturePosition.y}`);
-    }
-  };
 
   const handleResize = (e, { size }) => {
     setSignatureSize({ width: size.width, height: size.height });
@@ -306,6 +272,7 @@ function App() {
       setPages,
     ]
   );
+ 
 
   return (
     <div className="App">
