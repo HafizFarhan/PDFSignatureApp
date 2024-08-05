@@ -356,11 +356,13 @@ function App() {
          >
            <img
              src={signature}
+             className="signature-svg"
              alt="Signature"
              style={{
                width: "100%",
                height: "100%",
                cursor: "move",
+               
              }}
            />
            <div

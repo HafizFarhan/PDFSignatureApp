@@ -196,5 +196,10 @@
 .signature-rnd {
   position: absolute;
   border: 2px dashed #475769; /* Border to make it more visible */
-  /* background-color: rgba(255, 255, 255, 0.8); s */
+ 
+  z-index: 10;
+}
+.signature-svg{
+  z-index: -1;
+  position: relative;
 }
