@@ -1,4 +1,4 @@
-*{
+* {
   margin: 0;
   padding: 0;
 }
@@ -75,7 +75,6 @@
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
-  
 }
 
 .signature-pad-controls button {
@@ -143,6 +142,14 @@
 }
 
 .navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* Ensure it stays above other content */
+  background-color: #fff; /* Optional: Set a background color */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for better visibility */
+}
+.navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -151,12 +158,11 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 0;
 }
-.navbar a{
+.navbar a {
   color: black;
   position: absolute;
- 
 }
-.logo{
+.logo {
   margin-left: 1.3rem;
 }
 
@@ -165,7 +171,7 @@
   margin-right: 20px; /* Adjust spacing */
   overflow-x: auto; /* Enable horizontal scrolling for overflow */
   display: inline-block;
-  white-space: nowrap; 
+  white-space: nowrap;
 }
 
 .button {
@@ -196,10 +202,35 @@
 .signature-rnd {
   position: absolute;
   border: 2px dashed #475769; /* Border to make it more visible */
- 
+
   z-index: 10;
 }
-.signature-svg{
+.signature-svg {
   z-index: -1;
   position: relative;
+}
+/* CSS for the loader */
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(
+    255,
+    255,
+    255,
+    0.8
+  ); /* Light background to overlay content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #333;
+  z-index: 1000; /* Ensure the loader is on top of other elements */
+  display: none; /* Hide by default */
+}
+
+.loader.active {
+  display: flex; /* Show the loader */
 }

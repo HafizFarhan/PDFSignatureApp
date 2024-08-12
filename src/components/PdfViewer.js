@@ -10,14 +10,17 @@ const useRenderPDF = (
   setPdfViewerHeight,
   onCanvasRendered,
   setPageHeights,
-  setPageWidths, // Add this
+  setPageWidths,
   setPages
 ) => {
   const containerRef = useRef(null);
+  const isRenderingRef = useRef(false);
 
   useEffect(() => {
     const renderPDF = async () => {
-      if (!pdfData) return;
+      if (!pdfData || isRenderingRef.current) return;
+
+      isRenderingRef.current = true;
 
       const loadingTask = getDocument({ data: pdfData.slice(0) });
       const pdf = await loadingTask.promise;
@@ -31,7 +34,7 @@ const useRenderPDF = (
       const devicePixelRatio = window.devicePixelRatio || 1;
       let totalHeight = 0;
       const pageHeights = [];
-      const pageWidths = []; // Add this
+      const pageWidths = [];
       const pages = [];
 
       for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {
@@ -39,17 +42,15 @@ const useRenderPDF = (
         const viewport = page.getViewport({ scale });
 
         const canvas = document.createElement("canvas");
-
         const context = canvas.getContext("2d");
 
-        // Set canvas dimensions to match the PDF page dimensions
         const canvasWidth = viewport.width;
         const canvasHeight = viewport.height;
         canvas.width = canvasWidth * devicePixelRatio;
         canvas.height = canvasHeight * devicePixelRatio;
         canvas.style.width = `${canvasWidth}px`;
         canvas.style.height = `${canvasHeight}px`;
-        canvas.style.border = "1px solid #000"; // Add border style
+        canvas.style.border = "1px solid #000";
         context.scale(devicePixelRatio, devicePixelRatio);
 
         console.log(viewport.width, " + ", viewport.height);
@@ -63,24 +64,28 @@ const useRenderPDF = (
 
         await page.render(renderContext).promise;
 
-        totalHeight += canvasHeight; // Accumulate total height
-        pageHeights.push(canvasHeight / 2); // Store canvas height
-        pageWidths.push(canvasWidth); // Store canvas width (add this)
-        pages.push(page); // Store page object
+        totalHeight += canvasHeight;
+        pageHeights.push(canvasHeight / 2);
+        pageWidths.push(canvasWidth);
+        pages.push(page);
 
         console.log(`Rendered page ${pageNumber}`);
       }
 
       setPdfViewerHeight((totalHeight / 2) * devicePixelRatio);
       setPageHeights(pageHeights);
-      setPageWidths(pageWidths); // Set page widths (add this)
-      setPages(pages); // Set pages state
+      setPageWidths(pageWidths);
+      setPages(pages);
 
       console.log("this is the page height", pageHeights);
       console.log("this is total height : ", totalHeight);
-      console.log("this is the page width", pageWidths); // Log page widths (add this)
-      // Notify all canvases rendered
+      console.log("this is the page width", pageWidths);
+      const loader = document.getElementById("loader");
+      loader.classList.remove("active");
+
       onCanvasRendered(container.getBoundingClientRect());
+
+      isRenderingRef.current = false; // Reset the flag
     };
 
     renderPDF();
@@ -90,7 +95,7 @@ const useRenderPDF = (
     setPdfViewerHeight,
     onCanvasRendered,
     setPageHeights,
-    setPageWidths, // Add this
+    setPageWidths,
     setPages,
   ]);
 

@@ -12,7 +12,9 @@ const TextInputComponent = ({
   defaultText = "",
 }) => {
   // Parse the defaultText to a Date object
-  const initialDate = defaultText ? parse(defaultText, "dd-MM-yyyy", new Date()) : null;
+  const initialDate = defaultText
+    ? parse(defaultText, "dd-MM-yyyy", new Date())
+    : null;
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
@@ -87,12 +89,14 @@ const TextInputComponent = ({
           customInput={
             <input
               style={{
-                width: "200px",
-                height: "35px",
+                width: "100px",
+                height: "15px",
                 cursor: isEditable ? "text" : "move",
-                border: isEditable ? "1px solid #ccc" : "none",
-                padding: "5px",
+                border: isEditable ? "1px solid #ccc" : "2px dotted #00000",
+                padding: "0px",
                 pointerEvents: isEditable ? "auto" : "none",
+                backgroundColor: "transparent",
+                color: "#00000",
               }}
             />
           }
@@ -105,7 +109,7 @@ const TextInputComponent = ({
             position: "absolute",
             top: "0",
             left: "0",
-            transform: "translate(-15%, -140%)",
+            transform: "translate(-5%, -70%)",
             cursor: "pointer",
             backgroundColor: "transparent",
             border: "none",
@@ -132,7 +136,7 @@ const TextInputComponent = ({
             position: "absolute",
             top: "0",
             right: "0",
-            transform: "translate(25%, -120%)",
+            transform: "translate(15%, -70%)",
             cursor: "pointer",
             backgroundColor: "transparent",
             border: "none",
